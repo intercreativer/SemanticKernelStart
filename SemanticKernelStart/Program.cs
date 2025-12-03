@@ -5,12 +5,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<Kernel>(sp =>
 {
+    var configuration = builder.Configuration;
+
+    var modelId = configuration["OpenAI:Model"];
+    var apiKey = configuration["OpenAI:ApiKey"];
+
     var kernelBuilder = Kernel.CreateBuilder()
         .AddOpenAIChatCompletion(
-            modelId: "phi3",
-            apiKey: "",
-            endpoint: new Uri("http://localhost:11434/v1/")  // Ollama default
-            );
+            modelId: modelId,
+            apiKey: apiKey
+        );
     
     kernelBuilder.Plugins.AddFromType<TimePlugin>();
     
@@ -25,7 +29,13 @@ app.MapGet("/ask", async (Kernel kernel, string q) =>
 {
     try
     {
-        var result = await kernel.InvokePromptAsync(q);
+        // Enable auto function calling
+        var executionSettings = new PromptExecutionSettings
+        {
+            FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+        };
+        
+        var result = await kernel.InvokePromptAsync(q, new KernelArguments(executionSettings));
         return Results.Ok(result.ToString());
     }
     catch (Exception ex)
@@ -54,9 +64,14 @@ app.MapGet("/time", async (Kernel kernel) =>
 {
     try
     {
-        var result = await kernel.InvokePromptAsync("""
-            What time is it? Use the function if needed.
-            """);
+        // Enable auto function calling
+        var prompt = "What time is it? Use the function if needed.";
+        var executionSettings = new PromptExecutionSettings
+        {
+            FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+        };
+        
+        var result = await kernel.InvokePromptAsync(prompt, new KernelArguments(executionSettings));
         return Results.Ok(result.ToString());
     }
     catch (Exception ex)
