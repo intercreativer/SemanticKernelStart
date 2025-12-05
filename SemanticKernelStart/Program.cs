@@ -3,6 +3,7 @@ using SemanticKernelStart;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHttpClient<WeatherPlugin>();
 builder.Services.AddSingleton<Kernel>(sp =>
 {
     var configuration = builder.Configuration;
@@ -16,7 +17,10 @@ builder.Services.AddSingleton<Kernel>(sp =>
             apiKey: apiKey
         );
     
+    var weatherPlugin = sp.GetRequiredService<WeatherPlugin>();
+    
     kernelBuilder.Plugins.AddFromType<TimePlugin>();
+    kernelBuilder.Plugins.AddFromObject(weatherPlugin);
     
     
     return kernelBuilder.Build();
@@ -54,6 +58,26 @@ app.MapGet("/ask", async (Kernel kernel, string q) =>
         
         return Results.Problem(
             title: "Error processing request",
+            detail: ex.Message,
+            statusCode: 500
+        );
+    }
+});
+
+app.MapGet("/weather", async (Kernel kernel, string city) =>
+{
+    try
+    {
+        var function = kernel.Plugins.GetFunction("WeatherPlugin", "current_weather");
+        var args = new KernelArguments { ["city"] = city };
+
+        var result = await kernel.InvokeAsync<string>(function, args);
+        return Results.Ok(result);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            title: "Error fetching weather",
             detail: ex.Message,
             statusCode: 500
         );
