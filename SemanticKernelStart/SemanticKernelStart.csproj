@@ -4,13 +4,16 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <DefineConstants>$(DefineConstants);LANGCHAIN_SAMPLE</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.18"/>
+        <PackageReference Include="LangChain" Version="0.17.0" />
+        <PackageReference Include="LangChain.Providers.OpenAI" Version="0.17.0" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.18" />
         <PackageReference Include="Microsoft.SemanticKernel" Version="1.67.1" />
         <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.67.1-preview" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     </ItemGroup>
 
 </Project>

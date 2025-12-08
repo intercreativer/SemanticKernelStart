@@ -4,6 +4,7 @@ using SemanticKernelStart;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHttpClient<WeatherPlugin>();
+builder.Services.AddSingleton<LangChainSample>();
 builder.Services.AddSingleton<Kernel>(sp =>
 {
     var configuration = builder.Configuration;
@@ -102,6 +103,28 @@ app.MapGet("/time", async (Kernel kernel) =>
     {
         return Results.Problem(
             title: "Error processing request",
+            detail: ex.Message,
+            statusCode: 500
+        );
+    }
+});
+
+app.MapGet("/langchain", async (LangChainSample sample, string q) =>
+{
+    if (string.IsNullOrWhiteSpace(q))
+    {
+        return Results.BadRequest("Parameter 'q' is required.");
+    }
+
+    try
+    {
+        var answer = await sample.AskAsync(q);
+        return Results.Ok(answer);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            title: "Error running LangChain sample",
             detail: ex.Message,
             statusCode: 500
         );
